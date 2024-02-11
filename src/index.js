@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
-import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { Navigate, RouterProvider, createBrowserRouter } from 'react-router-dom';
 import Home from './pages/home';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -12,6 +12,7 @@ import Comments from './pages/comment';
 import Employees from './pages/employees';
 import Users from './pages/users';
 import ErrorPage from './pages/errorPage';
+import Auth from './pages/auth';
 
 
 const darkTheme = createTheme({
@@ -27,18 +28,32 @@ const darkTheme = createTheme({
   },
 });
 
+const ProductRoute = ({children ,auth=false})=> {
+  const login = localStorage.getItem('token') !== null || false
+  if(!login && auth) {
+      return <Navigate to='/admin/login'/>
+  }else if (login && ['/admin/login' , '/admin/register'].includes(window.location.pathname)) {
+    return <Navigate to='/' />
+  }
+  return children
+}
+
 const router = createBrowserRouter([
   {
     path:'/',
-    element: <App/>,
+    element: <ProductRoute>
+      <App/>
+    </ProductRoute>,
     errorElement:<ErrorPage/>,
     children:[
-      {index:true , element:<Home/>},
-      {path:'admin/reports' , element:<Report/>},
-      {path:'admin/reports/:id' , element:<Detail_Report/>},
-      {path:'admin/employees' , element:<Employees/>},
-      {path:'admin/users' , element:<Users/>},
-      {path:'admin/comments' , element:<Comments/>}
+      {index:true , element:<ProductRoute auth={true}><Home/></ProductRoute>},
+      {path:'admin/reports' , element: <ProductRoute auth={true}><Report/></ProductRoute>},
+      {path:'admin/login' , element:<ProductRoute><Auth signUp={false}/> </ProductRoute>},
+      {path:'admin/register' , element:<ProductRoute><Auth signUp={true}/> </ProductRoute>},
+      {path:'admin/reports/:id' , element:<ProductRoute auth={true}><Detail_Report/> </ProductRoute>},
+      {path:'admin/employees' , element:<ProductRoute auth={true}><Employees/> </ProductRoute>},
+      {path:'admin/users' , element:<ProductRoute auth={true}><Users/></ProductRoute>},
+      {path:'admin/comments' , element:<ProductRoute auth={true}><Comments/></ProductRoute>}
     ]
   }
 ])
